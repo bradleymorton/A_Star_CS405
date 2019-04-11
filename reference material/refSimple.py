@@ -29,7 +29,7 @@ class AStar(object):
         self.cells = []
         self.grid_height = 6
         self.grid_width = 6
-  ...
+  
 
 #We create a simple method initializing the list of cells to match our example with the walls at the same locations.
 
@@ -97,7 +97,7 @@ class AStar(object):
         cell = self.end
         while cell.parent is not self.start:
             cell = cell.parent
-            print 'path: cell: %d,%d' % (cell.x, cell.y)
+            print ('path: cell: %d,%d' % (cell.x, cell.y))
 
 #We need a method to calculate G and H and set the parent cell.
 
