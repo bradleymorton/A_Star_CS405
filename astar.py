@@ -1,3 +1,17 @@
+#    _           __  __                 ____                      _     
+#   / \  __/\__ |  \/  | __ _ _______  / ___|  ___  __ _ _ __ ___| |__  
+#  / _ \ \    / | |\/| |/ _` |_  / _ \ \___ \ / _ \/ _` | '__/ __| '_ \ 
+# / ___ \/_  _\ | |  | | (_| |/ /  __/  ___) |  __/ (_| | | | (__| | | |
+#/_/   \_\ \/   |_|  |_|\__,_/___\___| |____/ \___|\__,_|_|  \___|_| |_|
+#                                                                       
+#Bradly Morton, George Meier, Andrew Adler
+#Inputs     maze1.txt       0=Free_Space, 1=Wall, 2=Start, 3=End
+#Outputs    MazeResult1.txt containing path string and step count || IMPOSSIBLE 
+#change the name and number of the maze on lines 23 and 285
+
+
+
+
 #!/usr/local/bin/python3
 
 #Initialisation of a dictionary to store the file's informations
@@ -289,7 +303,7 @@ def writeFile(num):
         textFile.write(str("\n"))
 
         #Write the amount of steps to the file
-        textFile.write('Moves: '+str(file_infos["numberSteps"]))
+        textFile.write('Steps: '+str(file_infos["numberSteps"]))
     textFile.close()
 
 #Our main from which we call all of our functions
