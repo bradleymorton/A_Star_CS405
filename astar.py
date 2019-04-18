@@ -8,9 +8,68 @@
 #Inputs     maze1.txt       0=Free_Space, 1=Wall, 2=Start, 3=End
 #Outputs    MazeResult1.txt containing path string and step count || IMPOSSIBLE 
 #change the name and number of the maze on lines 23 and 285
+import sys
+
+class Node:
+    def __init__(self, row, col):
+        self.row = row
+        self.col = col
+
+    def gScore(self, startNode):
+        '''length from start to current'''
+        gscore = 0
+        return gscore
+
+    def fScore(self, endNode):
+        '''heuristic'''
+        fscore = 0
+        return fscore
+
+    def getNeighbors(self, map):
+        neighbors = []
+        return neighbors
 
 
+class Agent:
+    def __init__(self):
+        self.maze = readFiles(1)
+        self.openList = []
+        self.closedList = []
+        self.fx = 0
+        self.gx = 0
 
+    def sense(self):
+        self.startNode = Node(locateStart()[0],locateStart()[1])
+        self.endNode   = Node(locateEnd()[0],locateEnd()[1])
+        self.openList.append(self.startNode)
+
+        self.think()
+    
+    def think(self):
+        while self.openList:
+
+            currentNode = self.openList[0]
+            for eachNode in self.openList:
+                if eachNode.fScore < currentNode.fScore:
+                    currentNode = eachNode
+
+            self.openList.remove(currentNode)
+            self.closedList.append(currentNode)
+
+            neighbors = currentNode.getNeighbors()
+            for child in neighbors:
+                if child in self.closedList:
+                    continue
+                    
+                if child not in self.openList:
+                    self.openList.append(child)
+
+                elif child.gscore < currentNode.gscore:
+
+        self.action()
+
+    def action(self):
+        '''action'''
 
 #!/usr/local/bin/python3
 
@@ -36,6 +95,7 @@ def readFiles(num):
 
     #Store the information inside the "map" proprety of file_infos
     file_infos["map"] = tempStr
+    return tempStr
 
 #Function to locate both START and END positions from the "map"
 def locateStartEnd():
@@ -59,6 +119,34 @@ def locateStartEnd():
                 #Save the X and Y coordinates of the END position
                 file_infos["endPos"]["x"] = case
                 file_infos["endPos"]["y"] = line
+
+def locateStart():
+
+    #Loop through all the lines of the "map"
+    for line in range(0, len(file_infos["map"])):
+
+        #Loop through all the numbers of each line of the "map"
+        for case in range(0, len(file_infos["map"][line])):
+
+            #If the current case is the START position
+            if file_infos["map"][line][case] == 2:
+
+                #Save the X and Y coordinates of the START position
+                return (line, case)
+
+def locateEnd():
+
+    #Loop through all the lines of the "map"
+    for line in range(0, len(file_infos["map"])):
+
+        #Loop through all the numbers of each line of the "map"
+        for case in range(0, len(file_infos["map"][line])):
+
+            #If the current case of the END position
+            if file_infos["map"][line][case] == 3:
+
+                #Save the X and Y coordinates of the END position
+                return (line, case)
 
 #Function that initializes the Manhattan map
 def createManX():
@@ -328,6 +416,12 @@ def main():
         moveAround(a)
         trackBack()
         writeFile(str(each_file))
+    
+    print(file_infos["ManX"])
+
+    agent = Agent()
+    agent.sense()
+    print(file_infos["ManX"][agent.endNode.row][agent.endNode.col+1])
 
 if __name__ == "__main__":
     main()
