@@ -8,25 +8,29 @@
 #Inputs     maze1.txt       0=Free_Space, 1=Wall, 2=Start, 3=End
 #Outputs    MazeResult1.txt containing path string and step count || IMPOSSIBLE 
 #change the name and number of the maze on lines 23 and 285
-import sys
+import math
 
 class Node:
     def __init__(self, row, col):
         self.row = row
         self.col = col
-
-    def gScore(self, startNode):
-        '''length from start to current'''
-        gscore = 0
-        return gscore
-
-    def fScore(self, endNode):
-        '''heuristic'''
-        fscore = 0
-        return fscore
+        self.gscore = math.inf
+        self.fscore = math.inf
+        self.cameFrom = Node
 
     def getNeighbors(self, map):
         neighbors = []
+        if self.row != 0:
+            neighbors.append(Node(self.row - 1, self.col))
+
+        if self.row != len(map) - 1:
+            neighbors.append(Node(self.row + 1, self.col))
+
+        if self.col != 0:
+            neighbors.append(Node(self.row, self.col - 1))
+
+        if self.col != len(map[0]) - 1:
+            neighbors.append(Node(self.row, self.col + 1))
         return neighbors
 
 
@@ -35,6 +39,7 @@ class Agent:
         self.maze = readFiles(1)
         self.openList = []
         self.closedList = []
+        self.cameFrom = []
         self.fx = 0
         self.gx = 0
 
@@ -46,30 +51,49 @@ class Agent:
         self.think()
     
     def think(self):
+        #print("start node:", self.startNode.row, self.startNode.col)
         while self.openList:
 
             currentNode = self.openList[0]
             for eachNode in self.openList:
-                if eachNode.fScore < currentNode.fScore:
+                if eachNode.fscore < currentNode.fscore:
                     currentNode = eachNode
+            
+            print("current node: ",currentNode.row,currentNode.col)
+            if file_infos["map"][currentNode.row][currentNode.col] == 3:
+                break
 
             self.openList.remove(currentNode)
             self.closedList.append(currentNode)
 
-            neighbors = currentNode.getNeighbors()
+            neighbors = currentNode.getNeighbors(file_infos["map"])
             for child in neighbors:
                 if child in self.closedList:
                     continue
-                    
+
+                tentative_gscore = currentNode.gscore + 1 #This could be something other than 1 if moves are weighted
+
                 if child not in self.openList:
                     self.openList.append(child)
 
-                elif child.gscore < currentNode.gscore:
+                elif tentative_gscore >= child.gscore:
+                    continue
+                
+                #print("child node: ",child.row,child.col)
+                child.cameFrom = currentNode
+                child.gscore = tentative_gscore
+                child.fscore = child.gscore + self.heuristicEstimate(child)
 
         self.action()
 
     def action(self):
         '''action'''
+
+    def heuristicEstimate(self, fromNode):
+        #print (file_infos["ManX"][fromNode.row][fromNode.col])
+        #return file_infos["ManX"][fromNode.row][fromNode.col]
+        return 0
+
 
 #!/usr/local/bin/python3
 
@@ -81,7 +105,7 @@ def readFiles(num):
     tempStr = []
     tempInt = []
     #Read the file's content
-    tempMap = open("./maze" + str(3) + ".txt", "r").readlines()
+    tempMap = open("./maze" + str(num) + ".txt", "r").readlines()
 
     #Loop through all the lines of the file's content
     for line in range(0, len(tempMap)):
@@ -398,7 +422,7 @@ def writeFile(num):
 def main():
 
     #Repeat for all 9 files
-    for each_file in range(1,2):
+    for each_file in range(1,4):
         global file_infos
         file_infos = {"map": [], "startPos": {"x": "", "y": ""}, "endPos": {"x": "", "y": ""}, "Fx": [], "ManX": [], "aGx": [], "amountSteps": "", "reverseWinningPath": []}
 
@@ -416,8 +440,6 @@ def main():
         moveAround(a)
         trackBack()
         writeFile(str(each_file))
-    
-    print(file_infos["ManX"])
 
     agent = Agent()
     agent.sense()
