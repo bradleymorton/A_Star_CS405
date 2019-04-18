@@ -8,42 +8,68 @@
 #Inputs     maze1.txt       0=Free_Space, 1=Wall, 2=Start, 3=End
 #Outputs    MazeResult1.txt containing path string and step count || IMPOSSIBLE 
 #change the name and number of the maze on lines 23 and 285
+
 import math
+
+startChar    = 'S'
+endChar      = 'E'
+wallChar     = '#'
+pathChar     = ' '
+exploredChar = '+'
 
 class Node:
     def __init__(self, row, col, value):
         self.value = value
         self.row = row
         self.col = col
-        self.gscore = math.inf
-        self.fscore = math.inf
+        self.gscore = math.inf # Cost from start to current node
+        self.fscore = math.inf # Estimated cost from start to end through current node
         self.cameFrom = Node
+
+    def isNotWall(self):
+        return (self.value != wallChar) # Double negative! Ah! Scary!
 
     def getNeighbors(self, nodeArray):
         neighbors = []
+
         if self.row != 0:
-            neighbors.append(nodeArray[self.row - 1][self.col])
+            nodeAbove = nodeArray[self.row - 1][self.col]
+            if nodeAbove.isNotWall():
+                neighbors.append(nodeAbove)
 
         if self.row != len(nodeArray) - 1:
-            neighbors.append(nodeArray[self.row + 1][self.col])
+            nodeBelow = nodeArray[self.row + 1][self.col]
+            if nodeBelow.isNotWall():
+                neighbors.append(nodeBelow)
 
         if self.col != 0:
-            neighbors.append(nodeArray[self.row][self.col - 1])
+            nodeToTheLeft = nodeArray[self.row][self.col - 1]
+            if nodeToTheLeft.isNotWall():
+                neighbors.append(nodeToTheLeft)
 
         if self.col != len(nodeArray[0]) - 1:
-            neighbors.append(nodeArray[self.row][self.col + 1])
+            nodeToTheRight = nodeArray[self.row][self.col + 1]
+            if nodeToTheRight.isNotWall():
+                neighbors.append(nodeToTheRight)
         return neighbors
+
+    def reconstructPath(self, mazeString):
+        if self.value != startChar:
+            mazeString[self.row][self.col] = pathChar
+            self.cameFrom.reconstructPath(mazeString)
 
 
 class Agent:
-    def __init__(self):
-        self.maze = readFiles(5)
+    def __init__(self, mazeIndex):
+        self.mazeIndex = mazeIndex
+        self.mazeString = getMazeString(self.mazeIndex)
         self.openList = []
         self.closedList = []
         self.cameFrom = []
+        self.solveableMaze = False
 
     def sense(self):
-        self.nodeArray = makeNodeArray(5)
+        self.nodeArray = makeNodeArray(self.mazeIndex)
         self.startNode = locateStart(self.nodeArray)
         self.startNode.gscore = 0
         self.endNode   = locateEnd(self.nodeArray)
@@ -52,16 +78,17 @@ class Agent:
         self.think()
     
     def think(self):
-        #print("start node:", self.startNode.row, self.startNode.col)
+        exploredNodes = 0
         while self.openList:
             currentNode = self.openList[0]
             for eachNode in self.openList:
                 if eachNode.fscore < currentNode.fscore:
                     currentNode = eachNode
-            
-            print("current node: ",currentNode.row,currentNode.col)
-            #print("current node fscore:",currentNode.fscore)
-            if currentNode.value == 3:
+            if currentNode.value != startChar and currentNode.value != endChar:
+                self.mazeString[currentNode.row][currentNode.col] = exploredChar
+            exploredNodes += 1
+            if currentNode.value == endChar:
+                self.solveableMaze = True
                 break
 
             self.openList.remove(currentNode)
@@ -80,22 +107,30 @@ class Agent:
                 elif tentative_gscore >= child.gscore:
                     continue
                 
-                #print("child node: ",child.row,child.col)
                 child.cameFrom = currentNode
                 child.gscore = tentative_gscore
                 child.fscore = child.gscore + self.heuristicEstimate(child)
-                #print("child fscore:",child.fscore)
-
-        print("end node at:",self.endNode.row,self.endNode.col)
+        
         self.action()
 
     def action(self):
-        '''action'''
+        textFile = open("./MazeResult" + str(self.mazeIndex) + ".txt",'w')
+        tempStr = ""
+
+        if self.solveableMaze:
+            self.endNode.cameFrom.reconstructPath(self.mazeString)
+            for charList in self.mazeString:
+                tempStr += "".join(charList)
+                tempStr += "\n"
+
+        else:
+            tempStr = "NO SOLUTION! IMPOSSIBLE!"
+
+        textFile.write(tempStr)
+        textFile.close()        
 
     def heuristicEstimate(self, fromNode):
-        #print (file_infos["ManX"][fromNode.row][fromNode.col])
-        #return file_infos["ManX"][fromNode.row][fromNode.col]
-        return abs(fromNode.row - self.endNode.row) + abs(fromNode.col + self.endNode.col)
+        return abs(fromNode.row - self.endNode.row) + abs(fromNode.col - self.endNode.col)
 
 
 #!/usr/local/bin/python3
@@ -124,6 +159,25 @@ def readFiles(num):
     file_infos["map"] = tempStr
     return tempStr
 
+def getMazeString(num):
+    tempStr = []
+    #Read the file's content
+    tempMap = open("./maze" + str(num) + ".txt", "r").readlines()
+    
+    #Loop through all the lines of the file's content
+    for line in range(0, len(tempMap)):
+        tempMap[line] = tempMap[line].replace("\n", "")
+        tempStr.append(list(tempMap[line]))
+
+    #Loop through all the numbers in each line of the file's content
+    for line in range(0, len(tempStr)):
+        for case in range(0, len(tempStr[line])):
+            tempStr[line][case] = tempStr[line][case]
+
+    #Store the information inside the "map" proprety of file_infos
+    file_infos["map"] = tempStr
+    return tempStr
+
 def makeNodeArray(fileIndex):
     tempStr = []
     nodeArray = []
@@ -141,7 +195,7 @@ def makeNodeArray(fileIndex):
         for case in range(0, len(tempStr[line])):
 
             # Make a node at each position with the right value
-            nodeArray[line].append(Node(line,case,int(tempStr[line][case])))
+            nodeArray[line].append(Node(line,case,tempStr[line][case]))
     
     #Return the node array
     return nodeArray
@@ -170,7 +224,6 @@ def locateStartEnd():
                 file_infos["endPos"]["y"] = line
 
 def locateStart(nodeArray):
-
     #Loop through all the lines of the "map"
     for line in range(0, len(nodeArray)):
 
@@ -178,8 +231,8 @@ def locateStart(nodeArray):
         for case in range(0, len(nodeArray[line])):
 
             #If the current case is the START position
-            if nodeArray[line][case].value == 2:
-
+            if nodeArray[line][case].value == startChar:
+                
                 #Save the X and Y coordinates of the START position
                 return nodeArray[line][case]
 
@@ -192,7 +245,7 @@ def locateEnd(nodeArray):
         for case in range(0, len(nodeArray[line])):
 
             #If the current case is the START position
-            if nodeArray[line][case].value == 3:
+            if nodeArray[line][case].value == endChar:
 
                 #Save the X and Y coordinates of the START position
                 return nodeArray[line][case]
@@ -447,7 +500,8 @@ def writeFile(num):
 def main():
 
     #Repeat for all 9 files
-    for each_file in range(1,4):
+    for each_file in range(1,8):
+        '''
         global file_infos
         file_infos = {"map": [], "startPos": {"x": "", "y": ""}, "endPos": {"x": "", "y": ""}, "Fx": [], "ManX": [], "aGx": [], "amountSteps": "", "reverseWinningPath": []}
 
@@ -465,9 +519,9 @@ def main():
         moveAround(a)
         trackBack()
         writeFile(str(each_file))
-
-    agent = Agent()
-    agent.sense()
+        '''
+        agent = Agent(each_file)
+        agent.sense()
 
 if __name__ == "__main__":
     main()
