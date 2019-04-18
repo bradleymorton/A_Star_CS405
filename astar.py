@@ -61,13 +61,13 @@ class Agent:
                     currentNode = eachNode
             
             #print("current node: ",currentNode.row,currentNode.col)
-            if file_infos["map"][currentNode.row][currentNode.col] == 3:
+            if currentNode.value == 3:
                 break
 
             self.openList.remove(currentNode)
             self.closedList.append(currentNode)
 
-            neighbors = currentNode.getNeighbors(file_infos["map"])
+            neighbors = currentNode.getNeighbors(self.nodeArray)
             for child in neighbors:
                 if child in self.closedList:
                     continue
@@ -85,6 +85,7 @@ class Agent:
                 child.gscore = tentative_gscore
                 child.fscore = child.gscore + self.heuristicEstimate(child)
 
+        print("end node at:",self.endNode.row,self.endNode.col)
         self.action()
 
     def action(self):
