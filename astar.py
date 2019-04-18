@@ -11,26 +11,27 @@
 import math
 
 class Node:
-    def __init__(self, row, col):
+    def __init__(self, row, col, value):
+        self.value = value
         self.row = row
         self.col = col
         self.gscore = math.inf
         self.fscore = math.inf
         self.cameFrom = Node
 
-    def getNeighbors(self, map):
+    def getNeighbors(self, nodeArray):
         neighbors = []
         if self.row != 0:
-            neighbors.append(Node(self.row - 1, self.col))
+            neighbors.append(nodeArray[self.row - 1][self.col])
 
-        if self.row != len(map) - 1:
-            neighbors.append(Node(self.row + 1, self.col))
+        if self.row != len(nodeArray) - 1:
+            neighbors.append(nodeArray[self.row + 1][self.col])
 
         if self.col != 0:
-            neighbors.append(Node(self.row, self.col - 1))
+            neighbors.append(nodeArray[self.row][self.col - 1])
 
-        if self.col != len(map[0]) - 1:
-            neighbors.append(Node(self.row, self.col + 1))
+        if self.col != len(nodeArray[0]) - 1:
+            neighbors.append(nodeArray[self.row][self.col + 1])
         return neighbors
 
 
@@ -44,8 +45,11 @@ class Agent:
         self.gx = 0
 
     def sense(self):
-        self.startNode = Node(locateStart()[0],locateStart()[1])
-        self.endNode   = Node(locateEnd()[0],locateEnd()[1])
+        self.nodeArray = makeNodeArray(1)
+        print("first node:",self.nodeArray[0][0])
+        self.startNode = locateStart(self.nodeArray)
+        self.endNode   = locateEnd(self.nodeArray)
+        print(self.startNode)
         self.openList.append(self.startNode)
 
         self.think()
@@ -53,13 +57,12 @@ class Agent:
     def think(self):
         #print("start node:", self.startNode.row, self.startNode.col)
         while self.openList:
-
             currentNode = self.openList[0]
             for eachNode in self.openList:
                 if eachNode.fscore < currentNode.fscore:
                     currentNode = eachNode
             
-            print("current node: ",currentNode.row,currentNode.col)
+            #print("current node: ",currentNode.row,currentNode.col)
             if file_infos["map"][currentNode.row][currentNode.col] == 3:
                 break
 
@@ -79,7 +82,7 @@ class Agent:
                 elif tentative_gscore >= child.gscore:
                     continue
                 
-                #print("child node: ",child.row,child.col)
+                print("child node: ",child.row,child.col)
                 child.cameFrom = currentNode
                 child.gscore = tentative_gscore
                 child.fscore = child.gscore + self.heuristicEstimate(child)
@@ -121,6 +124,28 @@ def readFiles(num):
     file_infos["map"] = tempStr
     return tempStr
 
+def makeNodeArray(fileIndex):
+    tempStr = []
+    nodeArray = []
+    #Read the file's content
+    tempMap = open("./maze" + str(fileIndex) + ".txt", "r").readlines()
+
+    #Loop through all the lines of the file's content
+    for line in range(0, len(tempMap)):
+        tempMap[line] = tempMap[line].replace("\n", "")
+        tempStr.append(list(tempMap[line]))
+
+    #Loop through all the numbers in each line of the file's content
+    for line in range(0, len(tempStr)):
+        nodeArray.append([])
+        for case in range(0, len(tempStr[line])):
+
+            # Make a node at each position with the right value
+            nodeArray[line].append(Node(line,case,tempStr[line][case]))
+    
+    #Return the node array
+    return nodeArray
+
 #Function to locate both START and END positions from the "map"
 def locateStartEnd():
 
@@ -144,33 +169,33 @@ def locateStartEnd():
                 file_infos["endPos"]["x"] = case
                 file_infos["endPos"]["y"] = line
 
-def locateStart():
+def locateStart(nodeArray):
 
     #Loop through all the lines of the "map"
-    for line in range(0, len(file_infos["map"])):
+    for line in range(0, len(nodeArray)):
 
         #Loop through all the numbers of each line of the "map"
-        for case in range(0, len(file_infos["map"][line])):
+        for case in range(0, len(nodeArray[line])):
 
             #If the current case is the START position
-            if file_infos["map"][line][case] == 2:
+            if nodeArray[line][case].value == 2:
 
                 #Save the X and Y coordinates of the START position
-                return (line, case)
+                return nodeArray[line][case]
 
-def locateEnd():
+def locateEnd(nodeArray):
 
     #Loop through all the lines of the "map"
-    for line in range(0, len(file_infos["map"])):
+    for line in range(0, len(nodeArray)):
 
         #Loop through all the numbers of each line of the "map"
-        for case in range(0, len(file_infos["map"][line])):
+        for case in range(0, len(nodeArray[line])):
 
-            #If the current case of the END position
-            if file_infos["map"][line][case] == 3:
+            #If the current case is the START position
+            if nodeArray[line][case].value == 3:
 
-                #Save the X and Y coordinates of the END position
-                return (line, case)
+                #Save the X and Y coordinates of the START position
+                return nodeArray[line][case]
 
 #Function that initializes the Manhattan map
 def createManX():
@@ -443,7 +468,6 @@ def main():
 
     agent = Agent()
     agent.sense()
-    print(file_infos["ManX"][agent.endNode.row][agent.endNode.col+1])
 
 if __name__ == "__main__":
     main()
