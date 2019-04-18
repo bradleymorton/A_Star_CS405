@@ -37,16 +37,15 @@ class Node:
 
 class Agent:
     def __init__(self):
-        self.maze = readFiles(1)
+        self.maze = readFiles(5)
         self.openList = []
         self.closedList = []
         self.cameFrom = []
-        self.fx = 0
-        self.gx = 0
 
     def sense(self):
-        self.nodeArray = makeNodeArray(1)
+        self.nodeArray = makeNodeArray(5)
         self.startNode = locateStart(self.nodeArray)
+        self.startNode.gscore = 0
         self.endNode   = locateEnd(self.nodeArray)
         self.openList.append(self.startNode)
 
@@ -60,7 +59,8 @@ class Agent:
                 if eachNode.fscore < currentNode.fscore:
                     currentNode = eachNode
             
-            #print("current node: ",currentNode.row,currentNode.col)
+            print("current node: ",currentNode.row,currentNode.col)
+            #print("current node fscore:",currentNode.fscore)
             if currentNode.value == 3:
                 break
 
@@ -80,10 +80,11 @@ class Agent:
                 elif tentative_gscore >= child.gscore:
                     continue
                 
-                print("child node: ",child.row,child.col)
+                #print("child node: ",child.row,child.col)
                 child.cameFrom = currentNode
                 child.gscore = tentative_gscore
                 child.fscore = child.gscore + self.heuristicEstimate(child)
+                #print("child fscore:",child.fscore)
 
         print("end node at:",self.endNode.row,self.endNode.col)
         self.action()
@@ -94,7 +95,7 @@ class Agent:
     def heuristicEstimate(self, fromNode):
         #print (file_infos["ManX"][fromNode.row][fromNode.col])
         #return file_infos["ManX"][fromNode.row][fromNode.col]
-        return 0
+        return abs(fromNode.row - self.endNode.row) + abs(fromNode.col + self.endNode.col)
 
 
 #!/usr/local/bin/python3
