@@ -46,10 +46,8 @@ class Agent:
 
     def sense(self):
         self.nodeArray = makeNodeArray(1)
-        print("first node:",self.nodeArray[0][0])
         self.startNode = locateStart(self.nodeArray)
         self.endNode   = locateEnd(self.nodeArray)
-        print(self.startNode)
         self.openList.append(self.startNode)
 
         self.think()
@@ -141,7 +139,7 @@ def makeNodeArray(fileIndex):
         for case in range(0, len(tempStr[line])):
 
             # Make a node at each position with the right value
-            nodeArray[line].append(Node(line,case,tempStr[line][case]))
+            nodeArray[line].append(Node(line,case,int(tempStr[line][case])))
     
     #Return the node array
     return nodeArray
