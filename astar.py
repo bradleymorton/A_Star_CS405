@@ -19,12 +19,12 @@ exploredChar = '+'
 
 class Node:
     def __init__(self, row, col, value):
-        self.value = value
-        self.row = row
-        self.col = col
+        self.value = value     # Character in corresponding map of maze
+        self.row = row         # X-position of node 
+        self.col = col         # Y-position of node 
         self.gscore = math.inf # Cost from start to current node
         self.fscore = math.inf # Estimated cost from start to end through current node
-        self.cameFrom = Node
+        self.cameFrom = Node   # Previous node used in path reconstruction
 
     def isNotWall(self):
         return (self.value != wallChar) # Double negative! Ah! Scary!
@@ -32,85 +32,123 @@ class Node:
     def getNeighbors(self, nodeArray):
         neighbors = []
 
+        # Check node above current node
         if self.row != 0:
             nodeAbove = nodeArray[self.row - 1][self.col]
             if nodeAbove.isNotWall():
                 neighbors.append(nodeAbove)
 
+        # Check node below current node
         if self.row != len(nodeArray) - 1:
             nodeBelow = nodeArray[self.row + 1][self.col]
             if nodeBelow.isNotWall():
                 neighbors.append(nodeBelow)
 
+        # Check node to the left of current node
         if self.col != 0:
             nodeToTheLeft = nodeArray[self.row][self.col - 1]
             if nodeToTheLeft.isNotWall():
                 neighbors.append(nodeToTheLeft)
 
+        # Check node to the right of current node
         if self.col != len(nodeArray[0]) - 1:
             nodeToTheRight = nodeArray[self.row][self.col + 1]
             if nodeToTheRight.isNotWall():
                 neighbors.append(nodeToTheRight)
+
         return neighbors
 
+    # Back-track through maze after shortest path has been found
     def reconstructPath(self, mazeString):
         if self.value != startChar:
+
+            # Replace the character with "pathChar"
             mazeString[self.row][self.col] = pathChar
+
+            # Recursively follow path backwards
             self.cameFrom.reconstructPath(mazeString)
 
 
 class Agent:
     def __init__(self, mazeIndex):
-        self.mazeIndex = mazeIndex
+        self.mazeIndex = mazeIndex  # maze1, maze2, etc.
+
+        # String of the char's of the maze
         self.mazeString = getMazeString(self.mazeIndex)
-        self.openList = []
-        self.closedList = []
-        self.cameFrom = []
-        self.solveableMaze = False
+        self.openList = []          # Unexplored nodes
+        self.closedList = []        # Explored nodes
+        self.solveableMaze = False  # If the current maze is solveable
 
     def sense(self):
+        # Build array to store nodes in
         self.nodeArray = makeNodeArray(self.mazeIndex)
+
+        # Find start node
         self.startNode = locateStart(self.nodeArray)
         self.startNode.gscore = 0
-        self.endNode   = locateEnd(self.nodeArray)
         self.openList.append(self.startNode)
 
+        # Find end node
+        self.endNode = locateEnd(self.nodeArray)
+
+        # After reading the maze, find the path
         self.think()
     
     def think(self):
         exploredNodes = 0
+
         while self.openList:
+
+            # Grab the next node from the unexplored nodes
             currentNode = self.openList[0]
+
+            # Set current ndoe to the node with the lowest fscore
             for eachNode in self.openList:
                 if eachNode.fscore < currentNode.fscore:
                     currentNode = eachNode
+
+            # Replace character in maze string with exploredChar
             if currentNode.value != startChar and currentNode.value != endChar:
                 self.mazeString[currentNode.row][currentNode.col] = exploredChar
+
             exploredNodes += 1
+
+            # Check if the end of the maze has been reached
             if currentNode.value == endChar:
                 self.solveableMaze = True
                 break
 
+            # Move current node to explored nodes list
             self.openList.remove(currentNode)
             self.closedList.append(currentNode)
 
+            # Get neighbors of current node
             neighbors = currentNode.getNeighbors(self.nodeArray)
+
+            # Iterate through each of the neighbors
             for child in neighbors:
+                # If the neighbor has already been explored
                 if child in self.closedList:
                     continue
-
+                
+                # Find distance if the neighbor were to be moved to
                 tentative_gscore = currentNode.gscore + 1 #This could be something other than 1 if moves are weighted
 
+                # Make neighbors available for exploration
                 if child not in self.openList:
                     self.openList.append(child)
 
+                # If there's a shorter path to get to the neighbor
                 elif tentative_gscore >= child.gscore:
                     continue
                 
+                # Update gscore and fscore for the neighbor
                 child.cameFrom = currentNode
                 child.gscore = tentative_gscore
                 child.fscore = child.gscore + self.heuristicEstimate(child)
         
+        # Once maze has been explored, take action (output to file)
+        #   Either a path has been found or maze has been declared unsolveable
         self.action()
 
     def action(self):
@@ -118,7 +156,10 @@ class Agent:
         tempStr = ""
 
         if self.solveableMaze:
+            # Back-track to get the shortest path
             self.endNode.cameFrom.reconstructPath(self.mazeString)
+
+            # Concatenate mazeString into one string rather than a list of chars
             for charList in self.mazeString:
                 tempStr += "".join(charList)
                 tempStr += "\n"
@@ -129,6 +170,7 @@ class Agent:
         textFile.write(tempStr)
         textFile.close()        
 
+    # Manhattan Heuristic
     def heuristicEstimate(self, fromNode):
         return abs(fromNode.row - self.endNode.row) + abs(fromNode.col - self.endNode.col)
 
