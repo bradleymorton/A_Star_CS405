@@ -79,7 +79,7 @@ class Agent:
         self.closedList = []        # Explored nodes
         self.solveableMaze = False  # If the current maze is solveable
 
-        self.outputFile = "./base/MazeResult"
+        self.outputFile = "./base/BaseMazeResult"
 
     def sense(self):
         # Build array to store nodes in
@@ -180,7 +180,7 @@ class Agent:
 class ManhatAgent(Agent):
     def __init__(self,mazeIndex):
         Agent.__init__(self, mazeIndex)
-        self.outputFile = "./manhat/MazeResult"
+        self.outputFile = "./manhat/ManhatMazeResult"
 
     # Manhattan Heuristic
     def heuristicEstimate(self, fromNode):
@@ -189,7 +189,7 @@ class ManhatAgent(Agent):
 class EuclidAgent(Agent):
     def __init__(self,mazeIndex):
         Agent.__init__(self, mazeIndex)
-        self.outputFile = "./euclid/MazeResult"
+        self.outputFile = "./euclid/EuclidMazeResult"
 
     # Euclidean Heuristic
     def heuristicEstimate(self, fromNode):
