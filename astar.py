@@ -170,11 +170,20 @@ class Agent:
         textFile.write(tempStr)
         textFile.close()        
 
+    # virtual Heuristic
+    def heuristicEstimate(self, fromNode):
+        return 0
+
+   
+class ManhatAgent(Agent):
     # Manhattan Heuristic
     def heuristicEstimate(self, fromNode):
         return abs(fromNode.row - self.endNode.row) + abs(fromNode.col - self.endNode.col)
 
-
+class EuclidAgent(Agent):
+    # Euclidean Heuristic
+    def heuristicEstimate(self, fromNode):
+        return math.sqrt((fromNode.row - self.endNode.row)**2 + (fromNode.col - self.endNode.col)**2)
 
 def getMazeString(num):
     tempStr = []
@@ -243,13 +252,57 @@ def locateEnd(nodeArray):
                 #Save the X and Y coordinates of the START position
                 return nodeArray[line][case]
 
-#Our main from which we call all of our functions
+# Our main from which we call all of our functions
+# uncomment and run each agent then move output txt file to appropriate folder
 def main():
 
-    #Repeat for all 9 files
+    #Repeat for all 7 files
     for each_file in range(1,8):
-        agent = Agent(each_file)
-        agent.sense()
+        
+#        agent = Agent(each_file)
+#        agent.sense()
+#       
+#        manhatAgent = ManhatAgent(each_file)
+#        manhatAgent.sense()
+#        
+        euclidAgent = EuclidAgent(each_file)
+        euclidAgent.sense()
+       
 
 if __name__ == "__main__":
     main()
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
