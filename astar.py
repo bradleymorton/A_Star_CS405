@@ -79,6 +79,8 @@ class Agent:
         self.closedList = []        # Explored nodes
         self.solveableMaze = False  # If the current maze is solveable
 
+        self.outputFile = "./base/MazeResult"
+
     def sense(self):
         # Build array to store nodes in
         self.nodeArray = makeNodeArray(self.mazeIndex)
@@ -152,7 +154,7 @@ class Agent:
         self.action()
 
     def action(self):
-        textFile = open("./MazeResult" + str(self.mazeIndex) + ".txt",'w')
+        textFile = open(self.outputFile + str(self.mazeIndex) + ".txt",'w')
         tempStr = ""
 
         if self.solveableMaze:
@@ -176,11 +178,19 @@ class Agent:
 
    
 class ManhatAgent(Agent):
+    def __init__(self,mazeIndex):
+        Agent.__init__(self, mazeIndex)
+        self.outputFile = "./manhat/MazeResult"
+
     # Manhattan Heuristic
     def heuristicEstimate(self, fromNode):
         return abs(fromNode.row - self.endNode.row) + abs(fromNode.col - self.endNode.col)
 
 class EuclidAgent(Agent):
+    def __init__(self,mazeIndex):
+        Agent.__init__(self, mazeIndex)
+        self.outputFile = "./euclid/MazeResult"
+
     # Euclidean Heuristic
     def heuristicEstimate(self, fromNode):
         return math.sqrt((fromNode.row - self.endNode.row)**2 + (fromNode.col - self.endNode.col)**2)
@@ -259,14 +269,14 @@ def main():
     #Repeat for all 7 files
     for each_file in range(1,8):
         
-#        agent = Agent(each_file)
-#        agent.sense()
-#       
-#        manhatAgent = ManhatAgent(each_file)
-#        manhatAgent.sense()
-#        
-        euclidAgent = EuclidAgent(each_file)
-        euclidAgent.sense()
+       agent = Agent(each_file)
+       agent.sense()
+      
+       manhatAgent = ManhatAgent(each_file)
+       manhatAgent.sense()
+       
+       euclidAgent = EuclidAgent(each_file)
+       euclidAgent.sense()
        
 
 if __name__ == "__main__":
